@@ -8,11 +8,28 @@ import { Component } from '@angular/core';
 
 export class AppComponent {
   title = 'lab4-angular';
+  show = true;
+  checkboxValue: boolean = false;
+  scheduleNameInput: string; // initalizing to "" will cause errors: schedules will never have names
+
   showInfoTable = false; // info table is rendered only when this is true
   showTimeTable = false; // time table is rendered only when this is true
-  columnLabels = ["Course Number", "Subject", "Class Name", "Description"]; //todo add course_info columns
-  data: object[] = [];
+  columnLabels = ["Course Number", "Subject", "Class Name", "Description", "Selected"]; //todo add course_info columns
+  //data: object[] = [];
+  data: { [key: string]: any } = {};
+  checked: boolean[] = [];
   objectKeys = Object.keys;
+
+  activeSchedule: object = {}; // giving errors
+  selectedCourses: object[] = []; // array of SELECTED courses (full data)
+  scheduleData: any = {};/* {   // object of (labeled by schedule name) objects containing corresponding schedule courses
+    [key: string]: object;
+  }[] = {} as any; // "as any" is hotfix bc could find solution to error i was getting
+*/
+
+constructor(){
+  this.checked = [];
+}
 
   getData(){
     // data = ... ;
@@ -179,17 +196,10 @@ export class AppComponent {
     ];
 
     // parse recieved data to object 
-    // dont need to do? let jsData = this.dataToArray(jsonData);
+    // dont need to do this apparently? 
 
     // once done w object return it
-    this.data = jsonData; //jsData;
-    //return jsData; nvm set to data object that can be accessed from .html file
-  }
-
-  dataToArray(data: any){
-    console.log(data);
-    let jsObject = data.forEach(x => JSON.parse(x)); //JSON.parse(data);
-    return jsObject;
+    this.data = jsonData; // don't return, just set global class object to data
   }
 
   searchSubmitted(){
@@ -201,8 +211,53 @@ export class AppComponent {
 
       this.renderInfoTable(tableCourses);
   }
+
   renderInfoTable(jsData: any){
     this.showInfoTable = true;
+  }
+
+  createSchedule(){
+    let name: string = this.scheduleNameInput;
+    if(!this.scheduleNameInput){
+      console.log("Error: schedule name empty");
+    }
+    else{
+      console.log("schedule " + name + "created");
+      this.scheduleData[name] = {};
+      console.log(this.scheduleData);
+    }
+    this.reload();
+  }
+
+  courseSelected(course: object){ 
+
+    let checked = course["checked"];
+
+    if(checked){
+      // push the course object to the array of active courses
+        this.selectedCourses.push(course);
+        console.log(this.selectedCourses);
+    }
+    else{
+      for(let schedule in this.selectedCourses){
+        if(this.selectedCourses[schedule] == course){
+          
+          // find index and splice (remove and shift)
+            const index = this.selectedCourses.indexOf(this.selectedCourses[schedule], 0);
+            if (index > -1) {
+              this.selectedCourses.splice(index, 1);
+            }
+        
+          console.log("course removed from selected courses");
+          console.log(this.selectedCourses);
+        }
+      }
+    }
+  }
+
+  reload() {
+    this.show = false;
+    setTimeout(() => this.show = true);
   }
 
 }

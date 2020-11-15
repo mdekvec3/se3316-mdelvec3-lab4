@@ -1,4 +1,3 @@
-import { FormsModule } from '@angular/forms';
 <h1><!--<img src ="images/topimage.png"/>--></h1>
 
 <div class = "padEntireBody">
@@ -191,9 +190,9 @@ import { FormsModule } from '@angular/forms';
       <td>
         <div name="scheduleCreateSection" id="subjectSelection">
           <p class ="boldentext">Create a Schedule</p>
-          <input id ="scheduleName" type="text" placeholder="morning classes">   
+          <input id ="scheduleName" type="text" [(ngModel)]='scheduleNameInput' placeholder="morning classes">   
           <div class="submit">
-            <button type="submit" class="btn btn-info span2" autofocus="" (click)="createSchedule(this.value)">Create Schedule</button> 
+            <button type="submit" class="btn btn-info span2" autofocus="" (click)="createSchedule()">Create Schedule</button> 
           </div>
         </div>
       </td>
@@ -202,7 +201,9 @@ import { FormsModule } from '@angular/forms';
       <td class="scheduleInfoColumn">
         Active Schedule
         <select>
-          <option *ngFor="let key of scheduleData">{{key}}</option>
+          <option *ngFor="let key of scheduleData" value="key">
+            {{key}}
+          </option>
         </select>
       </td>
 
@@ -221,12 +222,16 @@ import { FormsModule } from '@angular/forms';
           <td *ngFor="let label of columnLabels">{{ label }}</td> <!-- Header Column: Loop Through Header Object -->
         </tr>  
 
-        <tr *ngFor="let course of data"> 
+        <tr *ngFor="let course of data; let i=index"> 
           <ng-container *ngFor="let property of objectKeys(course)">
-            <td *ngIf="property != 'course_info'">{{ course[property] }} </td> <!--dont render data from course_info property-->
+            <td *ngIf="property != 'course_info'">
+              {{ course[property] }} 
+            </td> <!--dont render data from course_info property-->
           </ng-container> 
-          <td><input type="checkbox" [(ngModel)]='checkboxValue' (change)="courseSelected(data[course], checkboxValue)">Add to Schedule</td>
-        </tr>
+          <td>
+            <input type="checkbox" [(ngModel)]='course.checked' (change)="courseSelected(course)">Add to Schedule</td>
+            <!-- removed [(ngModel)]='checkboxValue' and replaced-->
+          </tr>
       </table>
     </div> 
 
