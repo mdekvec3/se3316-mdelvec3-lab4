@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 <h1><!--<img src ="images/topimage.png"/>--></h1>
 
 <div class = "padEntireBody">
@@ -192,13 +193,17 @@
           <p class ="boldentext">Create a Schedule</p>
           <input id ="scheduleName" type="text" placeholder="morning classes">   
           <div class="submit">
-            <button type="submit" class="btn btn-info span2" autofocus="" (click)="searchSubmitted()">Create Schedule</button> 
+            <button type="submit" class="btn btn-info span2" autofocus="" (click)="createSchedule(this.value)">Create Schedule</button> 
           </div>
         </div>
       </td>
 
-      <td class="scheduleInfoColumn" id="">
-          <div id="schedulePreviewContainer"></div>
+      <!-- Schedule Dropdown Section To Seleect Active Schedule-->
+      <td class="scheduleInfoColumn">
+        Active Schedule
+        <select>
+          <option *ngFor="let key of scheduleData">{{key}}</option>
+        </select>
       </td>
 
       <td class="scheduleSelectColumn" >
@@ -210,7 +215,7 @@
     <div class="lineDivider"></div> 
 
 
-    <div id="infoTableContainer" *ngIf="showInfoTable" >
+    <div id="infoTableContainer" *ngIf="showInfoTable" > 
       <table>
         <tr>
           <td *ngFor="let label of columnLabels">{{ label }}</td> <!-- Header Column: Loop Through Header Object -->
@@ -218,12 +223,12 @@
 
         <tr *ngFor="let course of data"> 
           <ng-container *ngFor="let property of objectKeys(course)">
-            <td *ngIf="property != 'course_info' ">{{ course[property] }} </td> <!--dont render data from course_info property-->
-          </ng-container>
+            <td *ngIf="property != 'course_info'">{{ course[property] }} </td> <!--dont render data from course_info property-->
+          </ng-container> 
+          <td><input type="checkbox" [(ngModel)]='checkboxValue' (change)="courseSelected(data[course], checkboxValue)">Add to Schedule</td>
         </tr>
       </table>
-    </div> <!--render info table here -->
+    </div> 
 
     <div id="timeTableContainer" *ngIf="showTimeTable" ></div> <!--render time table here -->
-  
 </div>
