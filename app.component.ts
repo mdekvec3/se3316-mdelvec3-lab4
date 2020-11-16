@@ -1,12 +1,36 @@
 import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { courseObject } from './courseInterface'
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+
+@Injectable()
+export class ConfigService {
+  private url: string = "http://localhost:3000/api/courseData";
+
+  constructor(private http: HttpClient) {}
+   getcourses(): Observable<courseObject[]> {
+     return this.http.get<courseObject[]>(this.url);
+   }
+  getData(){};
+  searchSubmitted(){};
+  renderTimeTable(){};
+  addCoursesToSchedule(){};
+  scheduleSelected(scheduleName: string){};
+  createSchedule(){};
+  scheduleNameInput;
+}
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-
 export class AppComponent {
+
+  ngOnInit(){};
+  // selectValue;
   title = 'lab4-angular';
   show = true;
   checkboxValue: boolean = false;
@@ -14,28 +38,46 @@ export class AppComponent {
 
   showInfoTable = false; // info table is rendered only when this is true
   showTimeTable = false; // time table is rendered only when this is true
+  renderedSchedule;
   columnLabels = ["Course Number", "Subject", "Class Name", "Description", "Selected"]; //todo add course_info columns
-  //data: object[] = [];
   data: { [key: string]: any } = {};
   checked: boolean[] = [];
   objectKeys = Object.keys;
 
-  activeSchedule: object = {}; // giving errors
+  activeSchedule: object[] = []; // giving errors
+  actvieScheduleName: string;
   selectedCourses: object[] = []; // array of SELECTED courses (full data)
-  scheduleData: any = {};/* {   // object of (labeled by schedule name) objects containing corresponding schedule courses
-    [key: string]: object;
-  }[] = {} as any; // "as any" is hotfix bc could find solution to error i was getting
-*/
+  scheduleData: any = {};
+  timeBasedSchedule;
 
-constructor(){
-  this.checked = [];
-}
+  // for searching data
+  dataArray;
+  matchingCourses;
+
+  constructor(private _configservice:ConfigService){
+  
+    this.showInfoTable = false;
+    this.showTimeTable = false;
+    this.checked = [];
+    this.scheduleNameInput = "";
+    this.actvieScheduleName = "";
+    // this.selectValue = "";
+    this.timeBasedSchedule = {"8:30 AM": {},"9:30 AM": {},"10:30 AM": {},"11:30 AM": {},"12:30 PM": {},"1:30 PM": {},"2:30 PM": {},"3:30 PM": {},"4:30 PM": {},"5:30 PM": {},"6:30 PM": {},"7:30 PM": {},"8:30 PM": {},"9:30 PM": {}};
+    this.renderedSchedule = "";
+
+    this.dataArray = [];
+    // dataArray = courses
+    this.matchingCourses = [];
+
+  }
 
   getData(){
-    // data = ... ;
-    // make http request to get data object here
-    // using placeholder data for now
+    this.matchingCourses = [];
 
+    // make http request to get data object
+    this._configservice.getcourses().subscribe(timetableData => this.dataArray = timetableData);
+
+    // ignore
     let jsonData = [
       {
         "catalog_nbr": "1021B",
@@ -195,11 +237,51 @@ constructor(){
       },
     ];
 
+    let selectedComponent = (document.getElementById("componentDropdown") as HTMLInputElement).value;
+    let courseId = (document.getElementById("courseNumber") as HTMLInputElement).value;
+    let subjectInput = (document.getElementById("subjectDropDown") as HTMLInputElement).value;  
+
+    // validate that correct inputs 
+      if(subjectInput == ""){
+        alert("Please select a specific subject to search");
+      }
+
+      if(!courseId){
+        alert("A course ID must be inputted to search");
+      }
+
+    console.log(this.dataArray);
+
+    for(let course of this.dataArray){
+
+      if(selectedComponent == "ALL"){
+        
+        if(subjectInput === course.subject && courseId == course.catalog_nbr){
+          this.matchingCourses.push(course);
+        }
+      }
+      else{
+        if(subjectInput === course.subject && courseId == course.catalog_nbr && selectedComponent === course.course_info[0].ssr_component){
+          this.matchingCourses.push(course);
+      }
+      }
+
+    }
+
+    if(this.matchingCourses.length == 0){
+      alert("No courses match inputted search fields");
+    }
+    else{
+      console.log(this.matchingCourses);
+    }
+
+
     // parse recieved data to object 
     // dont need to do this apparently? 
 
     // once done w object return it
-    this.data = jsonData; // don't return, just set global class object to data
+    //this.data = jsonData; // don't return, just set global class object to data
+    this.data = this.matchingCourses;   // fix later
   }
 
   searchSubmitted(){
@@ -209,6 +291,7 @@ constructor(){
     // passing data (js object) to be rendered to table
       let tableCourses = this.renderInfoTable(this.data);
 
+    // todo after implimenting data fetch make seperate method for rendering table data?
       this.renderInfoTable(tableCourses);
   }
 
@@ -218,15 +301,16 @@ constructor(){
 
   createSchedule(){
     let name: string = this.scheduleNameInput;
+    
     if(!this.scheduleNameInput){
-      console.log("Error: schedule name empty");
+      alert("Error: schedule name empty");
     }
     else{
-      console.log("schedule " + name + "created");
+      console.log("schedule " + name + " created");
       this.scheduleData[name] = {};
       console.log(this.scheduleData);
     }
-    this.reload();
+    
   }
 
   courseSelected(course: object){ 
@@ -255,9 +339,103 @@ constructor(){
     }
   }
 
-  reload() {
-    this.show = false;
-    setTimeout(() => this.show = true);
+  scheduleSelected(scheduleName: string){
+  
+    let name = scheduleName;
+    try{
+      this.activeSchedule = this.scheduleData[name];
+      this.actvieScheduleName = name;
+      //console.log("Active schedule changed to " + name);
+    }catch(error){
+      console.log("Something went wrong; schedule name cannot be found in data");
+    }
+  }
+
+  addCoursesToSchedule(){
+    
+    if(this.actvieScheduleName == null || this.actvieScheduleName == "" || this.actvieScheduleName == undefined){
+      alert("Please select a schedule to add courses to it.")
+      return;
+    }
+    let activeSchedule = this.activeSchedule;
+    let name = this.actvieScheduleName;
+
+    this.scheduleData[name] = this.selectedCourses;
+    console.log(this.scheduleData);
+  }
+
+
+  /* TIME TABLE COMPONENT CODE BELOW
+   * 
+   */
+  
+  days = {Monday: "M", Tuesday: "Tu", Wednesday: "W", Thursday: "Th", Friday: "F"};
+  //daysInDataFormat = ["M", "Tu", "W", "Th", "F"];
+  times = ["8:30 AM","9:30 AM","10:30 AM","11:30 AM","12:30 PM","1:30 PM","2:30 PM","3:30 PM","4:30 PM","5:30 PM","6:30 PM","7:30 PM","8:30 PM","9:30 PM"];
+
+  renderTimeTable(){
+
+    if(this.activeSchedule.length == 0){
+      alert("Cannot render an empty schedule");
+    }
+
+    this.renderedSchedule = this.actvieScheduleName;
+    /*convert activeSchedule (array of objects) to organized object of format:
+    timeBasedSchedule = {
+      "8:30 AM": { monday: COURSE_NAME1, tuesday: COURSE_NAME2, wednesday: {}, ...}
+      "9:30 AM": ...
+    }
+    */
+
+    // schedule object we will be filling in
+    let organizedSchedule = {"8:30 AM": {},"9:30 AM": {},"10:30 AM": {},"11:30 AM": {},"12:30 PM": {},"1:30 PM": {},"2:30 PM": {},"3:30 PM": {},"4:30 PM": {},"5:30 PM": {},"6:30 PM": {},"7:30 PM": {},"8:30 PM": {},"9:30 PM": {}};
+
+    // loop through active schedule data and add
+    for(var course of this.activeSchedule){
+
+      let StartTime = course["course_info"][0]["start_time"];
+      let name = course["className"];
+      let daysArray = course["course_info"][0]["days"]; // array
+
+      let info = course["catalog_nbr"] + "\n" + name + ": " + course["course_info"][0]["ssr_component"]; 
+
+      // add course into to object's day slots
+      for(var day in this.days){
+        if(daysArray.includes(this.days[day])){  // this.day[days] is "M", "Tu", "W", ...
+
+          // check if another course in the schedule has written info to this time slot, if so there is conflict
+          if(organizedSchedule[StartTime][day] == undefined ){//|| organizedSchedule[StartTime][day] == null){
+            organizedSchedule[StartTime][day] = info;
+          }else{
+            organizedSchedule[StartTime][day] += "CONFLICT W/ " + course["catalog_nbr"];
+          }
+        }else{
+          organizedSchedule[StartTime][day] = "";
+        }        
+      }
+      //todo impliment courses that are longer than an hour?
+    }
+
+    // fill rest of the empty time slots  with blanks
+      for(var time of Object.keys(organizedSchedule)){
+
+        if(Object.keys(organizedSchedule[time]).length === 0){
+          for(var day in this.days){
+            organizedSchedule[time][day] = "";
+          }
+        }
+      };
+
+    // note tuesday in days array is 'Tu'
+    //console.log(organizedSchedule);
+
+    this.showTimeTable = true;
+    this.timeBasedSchedule = organizedSchedule;
+    console.log(this.timeBasedSchedule);
+  }
+
+  keepOrder = (a, b) => {
+    return a;
   }
 
 }
