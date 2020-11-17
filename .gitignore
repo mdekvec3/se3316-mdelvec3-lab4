@@ -334,6 +334,8 @@ ASALocalRun/
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 
+
+
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
 
@@ -348,3 +350,13 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+#node modules
+node_modules/
+./node_modules/
+./*/node_modules
+./*/*/node_modules
+
+#image files
+*.img
+
