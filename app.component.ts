@@ -64,15 +64,18 @@ export class AppComponent {
   }
 
   getData(){
+
     let matchingCourses = [];
     let courseData = this.dataArray;
 
     // getting search parameters
+      
       let selectedComponent = (document.getElementById("componentDropdown") as HTMLInputElement).value;
       let courseId = (document.getElementById("courseNumber") as HTMLInputElement).value;
       let subjectInput = (document.getElementById("subjectDropDown") as HTMLInputElement).value;  
 
     // validate that input requirements are fulfilled 
+      
       if(subjectInput == ""){
         alert("Please select a specific subject to search");
       }
@@ -82,18 +85,24 @@ export class AppComponent {
       }
 
     // more input validation
+      
       if(courseId.length > 5){
         alert("No course ID is longer than 5 characters");
         (document.getElementById("courseNumber") as HTMLInputElement).value = "";
         return;
       }
+      if(!this.sanitize(courseId, false)){
+        alert("Course codes contain only characters and numbers");
+        return;
+      }
 
     // find courses matching search params 
+      
       for(let course of courseData){
 
         if(selectedComponent == "ALL"){
           
-          // todo chop last lette of course code if ALL is enabled? 
+          // todo chop last letter of course code if ALL is enabled? 
             //if(/* last character is letter*/)
 
             // let cutSearchCourseId = (course.catalog_nbr).toString().substring(0, course.catalog_nbr.length - 1);
@@ -111,6 +120,7 @@ export class AppComponent {
       }
 
     // verify some courses matched, if not alert user
+      
       if(matchingCourses.length == 0){
         alert("No courses match inputted search fields");
       }
@@ -145,6 +155,11 @@ export class AppComponent {
     
     if(!this.scheduleNameInput){
       alert("Error: schedule name empty");
+      return;
+    }
+    else if(!this.sanitize(name, true)){
+      alert("The schedule name cannot contain special characters");
+      return;
     }
     else{
       console.log("schedule " + name + " created");
@@ -283,4 +298,24 @@ export class AppComponent {
   keepOrder = (a, b) => {
     return a;
   }
+
+  // returns true if the passed string contains only characters, numbers, spaces and underscores
+    sanitize(input: string, allowSpaces: boolean): boolean {
+      let expressionAllowSpaces = new RegExp('^[a-zA-Z0-9 _]{0,15}$'); 
+      let expressionNoSpaces = new RegExp('^[a-zA-Z0-9]{0,15}$'); 
+
+      if(allowSpaces){
+        if(expressionAllowSpaces.test(input)){
+          return true;
+        }else{
+          return false;
+        }
+      }else{
+        if(expressionNoSpaces.test(input)){
+          return true;
+        }else{
+          return false;
+        }
+      }
+    };
 }
