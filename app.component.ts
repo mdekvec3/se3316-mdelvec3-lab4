@@ -91,7 +91,7 @@ export class AppComponent {
         (document.getElementById("courseNumber") as HTMLInputElement).value = "";
         return;
       }
-      if(!this.sanitize(courseId, false)){
+      if(!this.sanitize(courseId, true)){
         alert("Course codes contain only characters and numbers");
         return;
       }
@@ -157,7 +157,7 @@ export class AppComponent {
       alert("Error: schedule name empty");
       return;
     }
-    else if(!this.sanitize(name, true)){
+    else if(!this.sanitize(name, false)){
       alert("The schedule name cannot contain special characters");
       return;
     }
@@ -252,26 +252,61 @@ export class AppComponent {
     let organizedSchedule = {"8:30 AM": {},"9:30 AM": {},"10:30 AM": {},"11:30 AM": {},"12:30 PM": {},"1:30 PM": {},"2:30 PM": {},"3:30 PM": {},"4:30 PM": {},"5:30 PM": {},"6:30 PM": {},"7:30 PM": {},"8:30 PM": {},"9:30 PM": {}};
 
     // loop through active schedule data and add
-    for(var course of this.activeSchedule){
+    for(let course of this.activeSchedule){
 
-      let StartTime = course["course_info"][0]["start_time"];
+      let startTime = course["course_info"][0]["start_time"];
+      let endTime = course["course_info"][0]["end_time"];
       let name = course["className"];
       let daysArray = course["course_info"][0]["days"]; // array
-
       let info = course["catalog_nbr"] + "\n" + name + ": " + course["course_info"][0]["ssr_component"]; 
 
+      // check if course is longer than one hour
+        let duration = (endTime.charAt(0) - startTime.charAt(0));
+        //console.log("startTime: " + startTime.charAt(0) + " endTime: "+  endTime.charAt(0) + " duration: " + duration);
+
+
       // add course into to object's day slots
-      for(var day in this.days){
+      for(let day in this.days){
+
         if(daysArray.includes(this.days[day])){  // this.day[days] is "M", "Tu", "W", ...
 
-          // check if another course in the schedule has written info to this time slot, if so there is conflict
-          if(organizedSchedule[StartTime][day] == undefined ){//|| organizedSchedule[StartTime][day] == null){
-            organizedSchedule[StartTime][day] = info;
-          }else{
-            organizedSchedule[StartTime][day] += "CONFLICT W/ " + course["catalog_nbr"];
-          }
+            // check if another course in the schedule has written info to this time slot, if so there is conflict
+            if(organizedSchedule[startTime][day] == undefined ){
+              organizedSchedule[startTime][day] = info;
+            }else{
+              organizedSchedule[startTime][day] += "CONFLICT W/ " + course["catalog_nbr"];
+            }
+
+          // if the course is longer than an hour - removed; not enough time
+          /*
+          if(duration >1){
+            console.log("duration greatee than 1");
+            let times;
+
+            // copy current start time to time array (instead of checking if AM or PM)
+            for(var i = 0; i< duration-1; i++){
+              times[i].push(startTime);
+              console.log(times[i]);
+            }
+
+            // adds 1 hour to start time and adds to array for however many hours more
+            for(var i = 0; i< duration-1; i++){
+              let startTime = times[i]
+              let newTime = startTime.charAt(0) + 1;
+              times[i] = newTime;
+            }
+
+            for(var i = 0; i< times.length; i++){
+              if(organizedSchedule[times[i]][day] == undefined ){
+                organizedSchedule[startTime][day] = info;
+              }else{
+                organizedSchedule[times[i]][day] += "CONFLICT W/ " + course["catalog_nbr"];
+              }
+            }
+          }*/
+
         }else{
-          organizedSchedule[StartTime][day] = "";
+          organizedSchedule[startTime][day] = "";
         }        
       }
       //todo impliment courses that are longer than an hour?
@@ -300,15 +335,16 @@ export class AppComponent {
   }
 
   // returns true if the passed string contains only characters, numbers, spaces and underscores
-    sanitize(input: string, allowSpaces: boolean): boolean {
+    sanitize(input: string, isCourseCode: boolean): boolean {
       let expressionAllowSpaces = new RegExp('^[a-zA-Z0-9 _]{0,15}$'); 
       let expressionNoSpaces = new RegExp('^[a-zA-Z0-9]{0,15}$'); 
+      let newExpression = new RegExp("[<\"\/>%\$&#@\[\\\^\$\.\|\?\*\+\(\)\{\}]");
 
-      if(allowSpaces){
-        if(expressionAllowSpaces.test(input)){
-          return true;
-        }else{
+      if(!isCourseCode){
+        if(newExpression.test(input)){
           return false;
+        }else{
+          return true;
         }
       }else{
         if(expressionNoSpaces.test(input)){

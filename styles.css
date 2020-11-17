@@ -5,6 +5,14 @@
 	text-decoration-color: grey;
  }
 
+ .controlColumn{
+	width: 25%;
+	border-collapse: collapse;
+	text-align: top;
+	padding-top: 0;
+	border-top: 0;
+ }
+
  .scheduleSelectContainer{
  	width: 65%;
  }
@@ -28,7 +36,7 @@
 }
 
 .lineDivider{
-	background-color: white;
+	background-color: black;
 	height: 2px;
 	width: 100%;
 }
@@ -49,12 +57,54 @@
 	margin:1rem auto; 
 	margin-right: 0;
 	margin-left: 0;
-
-
 }
 
  .boldentext {
  	font-weight: bold;
  }
+ 
+ .timeTable{
+	width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+	table-layout: fixed;
+	margin-left:auto; 
+	margin-right:auto;
+	border: 1px solid black; 
+ }
+
+ 
+.timeTableTd{
+	border: 1px solid black; 
+	/* table-layout: fixed; */
+	text-align: center;
+	font-size: small;
+	width: 19%;
+}
+
+.timetableTimeTd{
+	border: 1px solid black; 
+	/*table-layout: fixed;*/
+	text-align: left;
+	font-size: small;
+	width: 5%;
+}
+
+.timeTableDayTr{
+	border: 1px solid black; 
+	/* table-layout: fixed; */
+	text-align: center;
+	font-size: small;
+	height: 10%;
+}
+
+.timeTableTr{
+	border: 1px solid black; 
+	/* table-layout: fixed; */
+	text-align: center;
+	font-size: small;
+	height: 18%;
+}
+
 
 
